@@ -1,6 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View,Alert,Button,Image } from 'react-native';
+import { StyleSheet, Text, View,Alert,Button,Image,Linking } from 'react-native';
 import { useState,useEffect,useRef } from 'react';
+
+//Biblioteca de compartilhamento
 import * as Sharing from 'expo-sharing'
 
 //Biblioteca de camera no Expo
@@ -28,6 +30,9 @@ export default function App() {
 
   //Estado para o gerenciamento do flash
   const[flashLigado,setFlashLigado]=useState(false)
+
+  //Estado para verificar se um barcode foi scaneado pelo camera View
+  const[scaneado,setScaneado]=useState(false)
 
 
   //Pedindo permissão da galeria no inicio do app
@@ -103,10 +108,33 @@ export default function App() {
             style={styles.camera}
             facing={isFrontCamera?"front":"back"}
             flash={flashLigado?"on":"off"}
+            onBarcodeScanned={({type,data})=>{
+              if(!scaneado){
+                setScaneado(true)
+                Alert.alert("Código detectado",`Tipo:${type}\nValor:${data}`,[
+                  {
+                    text:"Cancelar"
+                  },
+                  {
+                    text:"Pesquisar Produto",
+                    onPress:()=>{
+                      const url = `https://pt.product-search.net/?q=${data}`
+                      Linking.openURL(url)
+                    }
+                  }
+                ])
+              }
+            }}
           />
           <Button title='TIRAR UMA FOTO' onPress={tirarFoto}/>
           <Button title="Alternar Câmera" onPress={toggleCameraType}/>
           <Button title={flashLigado?"Desligar Flash":"Ligar Flash"} onPress={alternarFlash}/>
+          {scaneado && (
+            <Button 
+            title='Escanear novamente'
+            onPress={()=>setScaneado(false)}
+          />
+          )}
           </>
         ):(
           <>
